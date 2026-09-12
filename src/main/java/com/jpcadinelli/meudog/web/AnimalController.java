@@ -4,9 +4,11 @@ import com.jpcadinelli.meudog.application.AnimalService;
 import com.jpcadinelli.meudog.domain.Animal;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,5 +42,19 @@ public class AnimalController {
 	@GetMapping("/{id}")
 	public ResponseEntity<AnimalResponse> findById(@PathVariable UUID id) {
 		return ResponseEntity.ok(AnimalResponse.from(animalService.findById(id)));
+	}
+
+	@PutMapping("/{id}")
+	public ResponseEntity<AnimalResponse> update(@PathVariable UUID id, @Valid @RequestBody AnimalRequest request) {
+		Animal animal = animalService.update(
+				id, request.nome(), request.especie(), request.idade(), request.raca(), request.sexo(), request.porte(), request.descricao()
+		);
+		return ResponseEntity.ok(AnimalResponse.from(animal));
+	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> delete(@PathVariable UUID id) {
+		animalService.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 }

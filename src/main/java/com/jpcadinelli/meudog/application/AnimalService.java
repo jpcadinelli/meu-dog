@@ -35,4 +35,20 @@ public class AnimalService {
 		return animalRepository.findById(new AnimalId(id))
 				.orElseThrow(AnimalNotFoundException::new);
 	}
+
+	@Transactional
+	public Animal update(UUID id, String nome, String especie, Integer idade, String raca, AnimalSexo sexo, AnimalPorte porte, String descricao) {
+		Animal animal = findById(id);
+		animal.update(nome, especie, idade, raca, sexo, porte, descricao);
+		return animal;
+	}
+
+	@Transactional
+	public void delete(UUID id) {
+		AnimalId animalId = new AnimalId(id);
+		if (!animalRepository.existsById(animalId)) {
+			throw new AnimalNotFoundException();
+		}
+		animalRepository.deleteById(animalId);
+	}
 }

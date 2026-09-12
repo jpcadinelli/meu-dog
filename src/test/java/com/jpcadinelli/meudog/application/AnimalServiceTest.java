@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,5 +71,47 @@ class AnimalServiceTest {
 
 		assertThrows(AnimalNotFoundException.class, () -> animalService.findById(id));
 		verify(animalRepository).findById(new AnimalId(id));
+	}
+
+	@Test
+	void shouldUpdateExistingAnimal() {
+		UUID id = UUID.randomUUID();
+		Animal animal = new Animal("Bob", "Cachorro", 5, "Beagle", AnimalSexo.MACHO, AnimalPorte.MEDIO, null);
+		when(animalRepository.findById(new AnimalId(id))).thenReturn(Optional.of(animal));
+
+		Animal updated = animalService.update(id, "Bob", "Cachorro", 6, "Beagle", AnimalSexo.MACHO, AnimalPorte.MEDIO, "Muito dócil");
+
+		assertSame(animal, updated);
+		assertEquals(6, updated.getIdade());
+		assertEquals("Muito dócil", updated.getDescricao());
+		verify(animalRepository).findById(new AnimalId(id));
+	}
+
+	@Test
+	void shouldThrowNotFoundWhenUpdatingMissingAnimal() {
+		UUID id = UUID.randomUUID();
+		when(animalRepository.findById(new AnimalId(id))).thenReturn(Optional.empty());
+
+		assertThrows(AnimalNotFoundException.class,
+				() -> animalService.update(id, "Bob", "Cachorro", 6, "Beagle", AnimalSexo.MACHO, AnimalPorte.MEDIO, null));
+	}
+
+	@Test
+	void shouldDeleteExistingAnimal() {
+		UUID id = UUID.randomUUID();
+		when(animalRepository.existsById(new AnimalId(id))).thenReturn(true);
+
+		animalService.delete(id);
+
+		verify(animalRepository).deleteById(new AnimalId(id));
+	}
+
+	@Test
+	void shouldThrowNotFoundWhenDeletingMissingAnimal() {
+		UUID id = UUID.randomUUID();
+		when(animalRepository.existsById(new AnimalId(id))).thenReturn(false);
+
+		assertThrows(AnimalNotFoundException.class, () -> animalService.delete(id));
+		verify(animalRepository, never()).deleteById(any());
 	}
 }

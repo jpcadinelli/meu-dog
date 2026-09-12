@@ -17,9 +17,14 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -84,6 +89,63 @@ class AnimalControllerTest {
 		when(animalService.findById(id)).thenThrow(new AnimalNotFoundException());
 
 		mockMvc.perform(get("/api/animais/{id}", id))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void shouldUpdateExistingAnimal() throws Exception {
+		Animal animal = new Animal("Bob", "Cachorro", 6, "Beagle", AnimalSexo.MACHO, AnimalPorte.MEDIO, "Muito dócil");
+		when(animalService.update(animal.getId().value(), "Bob", "Cachorro", 6, "Beagle", AnimalSexo.MACHO, AnimalPorte.MEDIO, "Muito dócil"))
+				.thenReturn(animal);
+
+		mockMvc.perform(put("/api/animais/{id}", animal.getId().value())
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{"nome":"Bob","especie":"Cachorro","idade":6,"raca":"Beagle","sexo":"MACHO","porte":"MEDIO","descricao":"Muito dócil"}
+							"""))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.idade").value(6))
+				.andExpect(jsonPath("$.descricao").value("Muito dócil"));
+	}
+
+	@Test
+	void shouldRejectInvalidAnimalUpdate() throws Exception {
+		mockMvc.perform(put("/api/animais/{id}", UUID.randomUUID())
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{"nome":"","especie":"","idade":-1,"raca":"","sexo":null,"porte":null}
+							"""))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void shouldReturnNotFoundWhenUpdatingMissingAnimal() throws Exception {
+		UUID id = UUID.randomUUID();
+		when(animalService.update(eq(id), any(), any(), any(), any(), any(), any(), any()))
+				.thenThrow(new AnimalNotFoundException());
+
+		mockMvc.perform(put("/api/animais/{id}", id)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(validBody()))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void shouldDeleteExistingAnimal() throws Exception {
+		UUID id = UUID.randomUUID();
+
+		mockMvc.perform(delete("/api/animais/{id}", id))
+				.andExpect(status().isNoContent());
+
+		verify(animalService).delete(id);
+	}
+
+	@Test
+	void shouldReturnNotFoundWhenDeletingMissingAnimal() throws Exception {
+		UUID id = UUID.randomUUID();
+		doThrow(new AnimalNotFoundException()).when(animalService).delete(id);
+
+		mockMvc.perform(delete("/api/animais/{id}", id))
 				.andExpect(status().isNotFound());
 	}
 

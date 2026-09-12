@@ -61,6 +61,16 @@ public class Animal {
 		this.dataCadastro = LocalDateTime.now();
 	}
 
+	public void update(String nome, String especie, Integer idade, String raca, AnimalSexo sexo, AnimalPorte porte, String descricao) {
+		this.nome = nome;
+		this.especie = especie;
+		this.idade = idade;
+		this.raca = raca;
+		this.sexo = sexo;
+		this.porte = porte;
+		this.descricao = descricao;
+	}
+
 	public AnimalId getId() {
 		return id;
 	}

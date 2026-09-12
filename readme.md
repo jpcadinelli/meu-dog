@@ -9,13 +9,14 @@ Implementado:
 - `POST /api/animais`
 - `GET /api/animais`
 - `GET /api/animais/{id}`
+- `PUT /api/animais/{id}`
+- `DELETE /api/animais/{id}`
 - Persistência da entidade `Animal` no PostgreSQL existente
 - Validações básicas do cadastro
 - Frontend React/Vite com dados estáticos de demonstração
 
 Ainda não implementado:
 
-- `PUT` e `DELETE`
 - Integração React + Spring Boot
 - `fetch`, `axios`, React Query ou qualquer chamada HTTP no frontend
 - Autenticação, imagens, adoção, adotantes e filtros
@@ -267,6 +268,69 @@ curl http://localhost:8080/api/animais
 curl http://localhost:8080/api/animais/550e8400-e29b-41d4-a716-446655440000
 ```
 
+### Atualizar animal
+
+`PUT /api/animais/{id}`
+
+Request:
+
+```json
+{
+  "nome": "Caramelo",
+  "especie": "Cachorro",
+  "idade": 4,
+  "raca": "Sem raça definida",
+  "sexo": "MACHO",
+  "porte": "MEDIO",
+  "descricao": "Cão muito dócil, adora passear"
+}
+```
+
+Resposta: `200 OK`
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "nome": "Caramelo",
+  "especie": "Cachorro",
+  "idade": 4,
+  "raca": "Sem raça definida",
+  "sexo": "MACHO",
+  "porte": "MEDIO",
+  "descricao": "Cão muito dócil, adora passear",
+  "status": "DISPONIVEL",
+  "dataCadastro": "2026-09-11T14:30:00"
+}
+```
+
+```bash
+curl -X PUT http://localhost:8080/api/animais/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Caramelo",
+    "especie": "Cachorro",
+    "idade": 4,
+    "raca": "Sem raça definida",
+    "sexo": "MACHO",
+    "porte": "MEDIO",
+    "descricao": "Cão muito dócil, adora passear"
+  }'
+```
+
+O ID, o status e a data de cadastro não são alterados pela atualização. Retorna `404 Not Found` quando o animal não existe e `400 Bad Request` quando o request é inválido.
+
+### Excluir animal
+
+`DELETE /api/animais/{id}`
+
+Resposta: `204 No Content`
+
+```bash
+curl -X DELETE http://localhost:8080/api/animais/550e8400-e29b-41d4-a716-446655440000
+```
+
+Retorna `404 Not Found` quando o animal não existe.
+
 ## Testes
 
 Os testes cobrem:
@@ -275,6 +339,10 @@ Os testes cobrem:
 - listagem;
 - busca de animal existente;
 - busca de animal inexistente com exceção tratada;
+- atualização de animal existente;
+- atualização de animal inexistente com exceção tratada;
+- exclusão de animal existente;
+- exclusão de animal inexistente com exceção tratada;
 - `201` e formato da resposta HTTP;
 - request inválido com `400`.
 
@@ -288,7 +356,6 @@ O teste de contexto usa a configuração PostgreSQL da aplicação; portanto, ma
 
 ## Próximos passos
 
-1. Adicionar atualização e exclusão de animais.
-2. Criar a tela de cadastro e a listagem real no React.
-3. Integrar o frontend com os três endpoints existentes.
-4. Evoluir para adoção, imagens, filtros e autenticação.
+1. Criar a tela de cadastro e a listagem real no React.
+2. Integrar o frontend com os endpoints existentes.
+3. Evoluir para adoção, imagens, filtros e autenticação.
