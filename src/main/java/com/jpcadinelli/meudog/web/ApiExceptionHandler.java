@@ -12,4 +12,9 @@ public class ApiExceptionHandler {
 	public ResponseEntity<Void> handleAnimalNotFound() {
 		return ResponseEntity.notFound().build();
 	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<Void> handleInvalidArgument() {
+		return ResponseEntity.badRequest().build();
+	}
 }

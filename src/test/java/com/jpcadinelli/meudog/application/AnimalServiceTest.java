@@ -6,6 +6,9 @@ import com.jpcadinelli.meudog.domain.AnimalPorte;
 import com.jpcadinelli.meudog.domain.AnimalSexo;
 import com.jpcadinelli.meudog.domain.StatusAdocao;
 import com.jpcadinelli.meudog.infrastructure.AnimalRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,10 +51,11 @@ class AnimalServiceTest {
 	@Test
 	void shouldFindAllAnimals() {
 		List<Animal> animals = List.of(new Animal("Luna", "Cachorro", 2, "Labrador", AnimalSexo.FEMEA, AnimalPorte.GRANDE, null));
-		when(animalRepository.findAll()).thenReturn(animals);
+		Page<Animal> page = new PageImpl<>(animals);
+		when(animalRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
 
-		assertSame(animals, animalService.findAll());
-		verify(animalRepository).findAll();
+		assertSame(page, animalService.findAll(PageRequest.of(0, 10)));
+		verify(animalRepository).findAll(PageRequest.of(0, 10));
 	}
 
 	@Test

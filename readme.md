@@ -1,6 +1,6 @@
 # Meu Dog
 
-Aplicação acadêmica para cadastro e gerenciamento de animais domésticos disponíveis para adoção. Esta primeira etapa entrega a API REST de criação e consulta de animais e uma apresentação visual inicial em React.
+Aplicação acadêmica para cadastro e gerenciamento de animais domésticos disponíveis para adoção. O projeto combina uma API REST em Java/Spring Boot, persistência PostgreSQL e um frontend React que funciona como apresentação acadêmica e plataforma operacional.
 
 ## Status atual
 
@@ -13,13 +13,12 @@ Implementado:
 - `DELETE /api/animais/{id}`
 - Persistência da entidade `Animal` no PostgreSQL existente
 - Validações básicas do cadastro
-- Frontend React/Vite com dados estáticos de demonstração
+- Frontend React/Vite integrado à API, com apresentação vertical e plataforma CRUD
+- Paginação e ordenação no endpoint de listagem
 
 Ainda não implementado:
 
-- Integração React + Spring Boot
-- `fetch`, `axios`, React Query ou qualquer chamada HTTP no frontend
-- Autenticação, imagens, adoção, adotantes e filtros
+- Autenticação, imagens persistidas, adoção, adotantes e filtros
 
 ## Tecnologias
 
@@ -77,6 +76,7 @@ meu-dog/
 │   └── web/
 │       ├── AnimalController.java
 │       ├── AnimalRequest.java
+│       ├── AnimalPageResponse.java
 │       ├── AnimalResponse.java
 │       └── ApiExceptionHandler.java
 ├── src/main/resources/application.properties
@@ -88,6 +88,7 @@ meu-dog/
 │   ├── src/App.jsx
 │   └── src/styles.css
 ├── docker-compose.yml
+├── database/seed-demo-animals.sql
 ├── pom.xml
 └── readme.md
 ```
@@ -175,8 +176,6 @@ A API fica disponível em `http://localhost:8080`.
 
 ## Executar o frontend
 
-O frontend é uma apresentação vertical independente, sem consumo da API nesta etapa:
-
 ```bash
 cd frontend
 npm install
@@ -185,7 +184,13 @@ npm run dev
 
 O Vite informará o endereço local, normalmente `http://localhost:5173`.
 
-Os cards de Caramelo, Luna e Bob estão em `frontend/src/data/dogs.js` como mocks visuais, prontos para serem removidos quando a listagem real for integrada.
+O frontend usa `fetch` e o proxy do Vite para consumir a API em `http://localhost:8080` por meio de chamadas relativas a `/api`. Também é possível definir `VITE_API_URL` para outro endereço.
+
+Para carregar os dados da demonstração, inicie o backend uma vez para que o Hibernate crie a tabela e execute:
+
+```bash
+docker exec -i postgres-dev psql -U admin -d database < database/seed-demo-animals.sql
+```
 
 ## Endpoints implementados
 
@@ -254,10 +259,30 @@ Outro exemplo válido é um gato:
 
 ### Listar animais
 
-`GET /api/animais` retorna todos os animais com `200 OK`.
+`GET /api/animais` retorna uma página com `200 OK`.
+
+Parâmetros suportados:
+
+- `page`: página iniciando em `0`;
+- `size`: `10`, `50` ou `100`;
+- `sort`: `status`, `nome`, `especie`, `raca`, `idade` ou `dataCadastro`, seguido de `asc`/`desc`.
+
+Sem parâmetros, a API usa `page=0`, `size=10` e `sort=dataCadastro,desc`.
+
+```json
+{
+  "content": [],
+  "number": 0,
+  "size": 10,
+  "totalPages": 2,
+  "totalElements": 11,
+  "first": true,
+  "last": false
+}
+```
 
 ```bash
-curl http://localhost:8080/api/animais
+curl 'http://localhost:8080/api/animais?page=0&size=10&sort=dataCadastro,desc'
 ```
 
 ### Buscar animal pelo ID
@@ -339,6 +364,7 @@ Os testes cobrem:
 - listagem;
 - busca de animal existente;
 - busca de animal inexistente com exceção tratada;
+- paginação, ordenação e validação dos parâmetros da listagem;
 - atualização de animal existente;
 - atualização de animal inexistente com exceção tratada;
 - exclusão de animal existente;
@@ -356,6 +382,6 @@ O teste de contexto usa a configuração PostgreSQL da aplicação; portanto, ma
 
 ## Próximos passos
 
-1. Criar a tela de cadastro e a listagem real no React.
-2. Integrar o frontend com os endpoints existentes.
-3. Evoluir para adoção, imagens, filtros e autenticação.
+1. Evoluir para adoção e cadastro de adotantes.
+2. Adicionar filtros e imagens persistidas.
+3. Implementar autenticação e acompanhamento do processo de adoção.

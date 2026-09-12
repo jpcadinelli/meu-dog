@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -66,11 +69,32 @@ class AnimalControllerTest {
 	@Test
 	void shouldListAnimals() throws Exception {
 		Animal animal = new Animal("Luna", "Cachorro", 2, "Labrador", AnimalSexo.FEMEA, AnimalPorte.GRANDE, null);
-		when(animalService.findAll()).thenReturn(List.of(animal));
+		when(animalService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(animal), PageRequest.of(0, 10), 1));
 
 		mockMvc.perform(get("/api/animais"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].nome").value("Luna"));
+				.andExpect(jsonPath("$.content[0].nome").value("Luna"))
+				.andExpect(jsonPath("$.number").value(0))
+				.andExpect(jsonPath("$.size").value(10));
+	}
+
+	@Test
+	void shouldListAnimalsWithRequestedPageAndSort() throws Exception {
+		when(animalService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(), PageRequest.of(1, 50), 0));
+
+		mockMvc.perform(get("/api/animais?page=1&size=50&sort=nome,asc"))
+				.andExpect(status().isOk());
+
+		org.mockito.Mockito.verify(animalService).findAll(org.mockito.ArgumentMatchers.argThat(pageable ->
+				pageable.getPageNumber() == 1
+						&& pageable.getPageSize() == 50
+						&& pageable.getSort().getOrderFor("nome").isAscending()));
+	}
+
+	@Test
+	void shouldRejectUnsupportedPageSize() throws Exception {
+		mockMvc.perform(get("/api/animais?size=25"))
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test

@@ -7,8 +7,9 @@ import com.jpcadinelli.meudog.domain.AnimalSexo;
 import com.jpcadinelli.meudog.infrastructure.AnimalRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -26,8 +27,8 @@ public class AnimalService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<Animal> findAll() {
-		return animalRepository.findAll();
+	public Page<Animal> findAll(Pageable pageable) {
+		return animalRepository.findAll(pageable);
 	}
 
 	@Transactional(readOnly = true)
